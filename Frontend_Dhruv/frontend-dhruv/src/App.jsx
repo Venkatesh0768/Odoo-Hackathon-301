@@ -9,7 +9,9 @@ import Login from './pages/user/Login';
 import SignUp from './pages/user/SignUp';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import FacilityManagement from './pages/owner/FacilityManagement';
-// import CourtManagement from './pages/owner/CourtManagement';
+import CourtManagement from './pages/owner/CourtManagement';
+import BookingManagement  from './pages/owner/BookingManagement';
+import OwnerProfile from './pages/owner/OwnerProfile';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -60,27 +62,43 @@ const AppRoutes = () => {
       <Route 
         path="/owner/dashboard" 
         element={
-          <ProtectedRoute requiredRole="OWNER">
+          // <ProtectedRoute requiredRole="OWNER">
             <OwnerDashboard />
-          </ProtectedRoute>
+          // </ProtectedRoute>
         } 
       />
       <Route 
         path="/owner/facility-management" 
         element={
-          <ProtectedRoute requiredRole="OWNER">
+          // <ProtectedRoute requiredRole="OWNER">
             <FacilityManagement />
-          </ProtectedRoute>
+          // </ProtectedRoute>
         } 
       />
-      {/* <Route 
+      <Route 
         path="/owner/court-management" 
         element={
-          <ProtectedRoute requiredRole="OWNER">
+          // <ProtectedRoute requiredRole="OWNER">
             <CourtManagement />
-          </ProtectedRoute>
+          // </ProtectedRoute>
         } 
-      /> */}
+      />
+      <Route 
+        path="/owner/bookings" 
+        element={
+          // <ProtectedRoute requiredRole="OWNER">
+            <BookingManagement />
+          // </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/owner/profile" 
+        element={
+          // <ProtectedRoute requiredRole="OWNER">
+            <OwnerProfile />
+          // </ProtectedRoute>
+        } 
+      />
 
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
