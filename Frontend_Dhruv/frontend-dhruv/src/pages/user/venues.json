@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "image": "https://images.unsplash.com/photo-1603297631832-db9f2a870d44",
+    "name": "City Sports Club",
+    "sports": ["Badminton", "Tennis"],
+    "price": 25,
+    "location": "New York",
+    "rating": 4.5,
+    "reviews": 120
+  },
+  {
+    "id": 2,
+    "image": "https://images.unsplash.com/photo-1546484959-fc9b0ee412f5",
+    "name": "Downtown Arena",
+    "sports": ["Football", "Basketball"],
+    "price": 40,
+    "location": "Los Angeles",
+    "rating": 4.8,
+    "reviews": 98
+  },
+  {
+    "id": 3,
+    "image": "https://images.unsplash.com/photo-1558979158-65a1eaa08691",
+    "name": "Parkside Tennis Courts",
+    "sports": ["Tennis"],
+    "price": 30,
+    "location": "San Francisco",
+    "rating": 4.3,
+    "reviews": 77
+  },
+  {
+    "id": 4,
+    "image": "https://images.unsplash.com/photo-1521412644187-c49fa049e84d",
+    "name": "Metro Sports Complex",
+    "sports": ["Volleyball", "Basketball"],
+    "price": 35,
+    "location": "Chicago",
+    "rating": 4.6,
+    "reviews": 145
+  },
+  {
+    "id": 5,
+    "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+    "name": "Riverside Badminton Club",
+    "sports": ["Badminton"],
+    "price": 20,
+    "location": "Boston",
+    "rating": 4.2,
+    "reviews": 69
+  },
+  {
+    "id": 6,
+    "image": "https://images.unsplash.com/photo-1517649763962-0c623066013b",
+    "name": "Eastside Cricket Grounds",
+    "sports": ["Cricket"],
+    "price": 45,
+    "location": "Mumbai",
+    "rating": 4.7,
+    "reviews": 130
+  },
+  {
+    "id": 7,
+    "image": "https://images.unsplash.com/photo-1518105779142-d975f22f1d13",
+    "name": "West End Squash Club",
+    "sports": ["Squash"],
+    "price": 28,
+    "location": "Seattle",
+    "rating": 4.1,
+    "reviews": 88
+  }
+]
