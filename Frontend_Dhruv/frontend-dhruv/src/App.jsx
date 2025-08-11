@@ -9,6 +9,8 @@ import MyBookings from "./pages/user/MyBookings";
 import Profile from "./pages/user/MyProfile";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import VenueList from "./pages/user/VenueList";
+import VenueDetails from "./pages/user/VenueDetails";
+
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -59,6 +61,7 @@ const App = () => {
           </>
         )}
          <Route path="/venues" element={<VenueList />} />
+         <Route path="/venue/:id" element={<VenueDetails />} />
         <Route path="/owner/dashboard" element={<OwnerDashboard />} />
       </Routes>
     </Router>

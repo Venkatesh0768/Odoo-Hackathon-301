@@ -317,6 +317,7 @@ const VenueList = () => {
                 currentVenues.map((venue) => (
                   <VenueCard
                     key={venue.id}
+                    id={venue.id}
                     image={venue.image}
                     name={venue.name}
                     sports={venue.sports}

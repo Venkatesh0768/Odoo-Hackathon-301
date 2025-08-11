@@ -1,7 +1,10 @@
 import React from "react";
 import { FaMapMarkerAlt, FaStar } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
-const VenueCard = ({ image, name, sports, price, location, rating, reviews, type }) => {
+const VenueCard = ({ id, image, name, sports, price, location, rating, reviews, type }) => {
+  const navigate = useNavigate();
+
   // reusable stars rendering
   const renderStars = (rating) => {
     const stars = [];
@@ -15,6 +18,10 @@ const VenueCard = ({ image, name, sports, price, location, rating, reviews, type
       stars.push(<FaStar key={`empty-${i}`} className="text-gray-300" />);
     }
     return stars;
+  };
+
+  const handleBookNow = () => {
+    navigate(`/venue/${id}`);
   };
 
   return (
@@ -74,7 +81,10 @@ const VenueCard = ({ image, name, sports, price, location, rating, reviews, type
         </div>
 
         {/* Book Button */}
-        <button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full font-semibold py-2 transition-all duration-300">
+        <button
+          onClick={handleBookNow}
+          className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full font-semibold py-2 transition-all duration-300"
+        >
           Book Now
         </button>
       </div>

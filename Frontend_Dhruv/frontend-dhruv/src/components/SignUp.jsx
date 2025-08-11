@@ -58,7 +58,7 @@ const SignUp = () => {
       };
 
       const res = await fetch(
-        "https://dd183bddabf9.ngrok-free.app/api/v1/auth/signup",
+        "https://1b0f432add66.ngrok-free.app/api/v1/auth/signup",
         {
           method: "POST",
           headers: {
