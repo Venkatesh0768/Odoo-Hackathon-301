@@ -1,81 +1,179 @@
 package org.example.authservicequickcourt.services;
 
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.example.authservicequickcourt.dtos.LoginRequestDto;
 import org.example.authservicequickcourt.dtos.UserRequestDto;
-import org.example.authservicequickcourt.dtos.UserResponseDto;
 import org.example.authservicequickcourt.repositories.UserRepository;
 import org.example.entityservicequickcourt.enums.UserRole;
 import org.example.entityservicequickcourt.models.User;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
-public class AuthService {
+public class AuthService{
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JWTService jwtService;
+    private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, AuthenticationManager authenticationManager, 
+                      JWTService jwtService, PasswordEncoder passwordEncoder, OtpService otpService) {
         this.userRepository = userRepository;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
+        this.otpService = otpService;
     }
 
-    public UserResponseDto signUp(UserRequestDto userRequestDto) {
-        Optional<User> isExisted = userRepository.findByEmail(userRequestDto.getEmail());
-        if (!isExisted.isPresent()) {
-            User user = new User();
-            user.setFirstName(userRequestDto.getFirstName());
-            user.setLastName(userRequestDto.getLastName());
-            user.setEmail(userRequestDto.getEmail());
-            user.setPassword(userRequestDto.getPassword());
-            user.setPhoneNumber(userRequestDto.getPhoneNumber());
-            user.setRole(UserRole.valueOf(userRequestDto.getRole()));
-            userRepository.save(user);
-
-
-            UserResponseDto userResponseDto = new UserResponseDto();
-            userResponseDto.setFirstName(user.getFirstName());
-            userResponseDto.setLastName(user.getLastName());
-            userResponseDto.setEmail(user.getEmail());
-            userResponseDto.setPhoneNumber(user.getPhoneNumber());
-            userResponseDto.setRole(user.getRole().name());
-            return userResponseDto;
-        } else {
-            throw new RuntimeException("User already exists with email: " + userRequestDto.getEmail());
+    public User createUser(UserRequestDto userDto) {
+        log.info("Creating new user with email: {}", userDto.getEmail());
+        
+        // Validate input
+        if (!userDto.isValid()) {
+            throw new IllegalArgumentException("All required fields must be provided");
         }
+        
+        if (!userDto.isEmailValid()) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+        
+        if (!userDto.isPasswordStrong()) {
+            throw new IllegalArgumentException("Password must be at least 8 characters long");
+        }
+
+        Optional<User> existingUser = userRepository.findByEmail(userDto.getEmail());
+
+        if (existingUser.isPresent()) {
+            throw new IllegalArgumentException("User with this email already exists");
+        }
+
+        User user = User.builder()
+                .firstName(userDto.getFirstName())
+                .lastName(userDto.getLastName())
+                .email(userDto.getEmail())
+                .password(passwordEncoder.encode(userDto.getPassword()))
+                .role(UserRole.valueOf(userDto.getRole()))
+                .phoneNumber(userDto.getPhoneNumber())
+                .build();
+
+        User savedUser = userRepository.save(user);
+        log.info("User created successfully with ID: {}", savedUser.getId());
+        return savedUser;
     }
 
-    public UserResponseDto loginUser(LoginRequestDto loginRequestDto) {
-        Optional<User> user = userRepository.findByEmail(loginRequestDto.getEmail());
-        if (user.isPresent()) {
-            User foundUser = user.get();
-            if (foundUser.getPassword().equals(loginRequestDto.getPassword())) {
-                UserResponseDto userResponseDto = new UserResponseDto();
-                userResponseDto.setFirstName(foundUser.getFirstName());
-                userResponseDto.setLastName(foundUser.getLastName());
-                userResponseDto.setEmail(foundUser.getEmail());
-                userResponseDto.setPhoneNumber(foundUser.getPhoneNumber());
-                userResponseDto.setRole(foundUser.getRole().name());
-                return userResponseDto;
-            } else {
-                throw new RuntimeException("Invalid password for email: " + loginRequestDto.getEmail());
+    public Boolean validateUser(LoginRequestDto userDto, HttpServletResponse response) {
+        log.info("Validating user login for email: {}", userDto.getEmail());
+        
+        // Validate input
+        if (!userDto.isValid()) {
+            log.warn("Invalid login request data for email: {}", userDto.getEmail());
+            return false;
+        }
+        
+        if (!userDto.isEmailValid()) {
+            log.warn("Invalid email format for login: {}", userDto.getEmail());
+            return false;
+        }
+        
+        try {
+            // Use email for authentication to maintain consistency
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(userDto.getEmail(), userDto.getPassword())
+            );
+
+            if (authentication.isAuthenticated()) {
+                String token = jwtService.createToken(userDto.getEmail());
+
+                ResponseCookie cookie = ResponseCookie.from("JwtToken", token)
+                        .httpOnly(true)
+                        .secure(false) // Set to true in production with HTTPS
+                        .path("/")
+                        .maxAge(7 * 24 * 3600) // 7 days in seconds
+                        .sameSite("Lax") // Add SameSite for better security
+                        .build();
+
+                response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                log.info("User login successful for email: {}", userDto.getEmail());
+                return true;
             }
-        } else {
-            throw new RuntimeException("User not found with email: " + loginRequestDto.getEmail());
+        } catch (BadCredentialsException e) {
+            log.warn("Invalid credentials for email: {}", userDto.getEmail());
+        } catch (Exception e) {
+            log.error("Authentication error for email: {}", userDto.getEmail(), e);
         }
 
+        return false;
+    }
+    
+    public String initiateOtpLogin(String email) {
+        log.info("Initiating OTP login for email: {}", email);
+        
+        // Check if user exists
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            log.warn("OTP login attempted for non-existent email: {}", email);
+            throw new IllegalArgumentException("User not found with this email");
+        }
+        
+        // Generate and send OTP
+        boolean otpSent = otpService.sendOtp(email);
+        if (!otpSent) {
+            log.error("Failed to send OTP for email: {}", email);
+            throw new RuntimeException("Failed to send OTP");
+        }
+        
+        log.info("OTP sent successfully to email: {}", email);
+        return "OTP sent successfully to your email"; // Return success message instead of OTP
+    }
+    
+    public Boolean verifyOtpAndLogin(String email, String otp, HttpServletResponse response) {
+        log.info("Verifying OTP for email: {}", email);
+        
+        // Verify OTP
+        if (!otpService.verifyOtp(email, otp)) {
+            log.warn("Invalid OTP for email: {}", email);
+            return false;
+        }
+        
+        // Check if user exists
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            log.warn("OTP verified but user not found for email: {}", email);
+            return false;
+        }
+        
+        // Generate JWT token
+        String token = jwtService.createToken(email);
+        
+        ResponseCookie cookie = ResponseCookie.from("JwtToken", token)
+                .httpOnly(true)
+                .secure(false) // Set to true in production with HTTPS
+                .path("/")
+                .maxAge(7 * 24 * 3600) // 7 days in seconds
+                .sameSite("Lax")
+                .build();
+
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        log.info("OTP login successful for email: {}", email);
+        return true;
     }
 
-
-    public boolean isEmailExists(String email) {
-        return userRepository.existsByEmail(email);
+    public List<User> getAllUser() {
+        log.info("Retrieving all users");
+        return userRepository.findAll();
     }
-
-    public Optional<User> findById(String id) {
-        return userRepository.findById(id);
-    }
-
-
-
-
-
 }

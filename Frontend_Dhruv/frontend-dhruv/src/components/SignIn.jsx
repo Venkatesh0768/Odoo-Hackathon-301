@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import OtpVerification from "./OtpVerification";
+import { otpService } from "../services/otpService";
 
 const SignIn = ({ setIsLoggedIn }) => {
   const [role, setRole] = useState("User");
@@ -7,6 +9,8 @@ const SignIn = ({ setIsLoggedIn }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [loginData, setLoginData] = useState(null);
 
   const navigate = useNavigate();
 
@@ -19,7 +23,7 @@ const SignIn = ({ setIsLoggedIn }) => {
     setLoading(true);
 
     try {
-      const res = await fetch("https://dd183bddabf9.ngrok-free.app/api/v1/auth/login", {
+      const res = await fetch("http://localhost:8082/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // Important for session cookies
@@ -30,15 +34,15 @@ const SignIn = ({ setIsLoggedIn }) => {
       setLoading(false);
 
       if (res.ok) {
-        setIsLoggedIn(true);
-
-        // Redirect based on role
-        if (role === "Facility Owner") {
-          navigate("/owner/dashboard");
-        } else if (role === "Admin") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/");
+        // Store login data and show OTP verification
+        setLoginData(data);
+        
+        // Send OTP for verification
+        try {
+          await sendOtp(form.email);
+          setShowOtpVerification(true);
+        } catch (otpError) {
+          setError(`Login successful but failed to send OTP: ${otpError.message}`);
         }
       } else {
         setError(data.message || data.error || "Sign in failed");
@@ -48,6 +52,50 @@ const SignIn = ({ setIsLoggedIn }) => {
       setError("Server error, please try again.");
     }
   };
+
+  const sendOtp = async (email) => {
+    try {
+      await otpService.sendOtp(email);
+    } catch (error) {
+      throw new Error("Failed to send OTP");
+    }
+  };
+
+  const handleOtpVerificationSuccess = (data) => {
+    setIsLoggedIn(true);
+
+    // Redirect based on role
+    if (role === "Facility Owner") {
+      navigate("/owner/dashboard");
+    } else if (role === "Admin") {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/");
+    }
+  };
+
+  const handleResendOtp = async () => {
+    return await sendOtp(form.email);
+  };
+
+  const handleBackToSignin = () => {
+    setShowOtpVerification(false);
+    setError("");
+    setLoginData(null);
+  };
+
+  // Show OTP verification if needed
+  if (showOtpVerification) {
+    return (
+      <OtpVerification
+        email={form.email}
+        onVerificationSuccess={handleOtpVerificationSuccess}
+        onResendOtp={handleResendOtp}
+        isSignup={false}
+        onBack={handleBackToSignin}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-blue-50">
@@ -126,7 +174,7 @@ const SignIn = ({ setIsLoggedIn }) => {
         </button>
 
         <div className="mt-6 text-center">
-          <span>Don’t have an account? </span>
+          <span>Don't have an account? </span>
           <a href="/signup" className="text-green-600 font-bold">
             Sign Up
           </a>
