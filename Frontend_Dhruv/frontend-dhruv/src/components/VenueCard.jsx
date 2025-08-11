@@ -1,7 +1,7 @@
 import React from "react";
 import { FaMapMarkerAlt, FaStar } from "react-icons/fa";
 
-const VenueCard = ({ image, name, sports, price, location, rating, reviews }) => {
+const VenueCard = ({ image, name, sports, price, location, rating, reviews, type }) => {
   // reusable stars rendering
   const renderStars = (rating) => {
     const stars = [];
@@ -26,10 +26,16 @@ const VenueCard = ({ image, name, sports, price, location, rating, reviews }) =>
           alt={name}
           className="w-full h-full object-cover rounded-t-2xl"
         />
+        {/* Venue Type Badge */}
+        {type && (
+          <div className="absolute top-3 right-3 bg-gray-800 bg-opacity-75 text-white text-xs px-3 py-1 rounded-full font-semibold shadow">
+            {type.charAt(0).toUpperCase() + type.slice(1)}
+          </div>
+        )}
         {/* Price Badge */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute bottom-3 left-3">
           <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow">
-            ${price}/hr
+            ₹{price} /hr
           </span>
         </div>
       </div>
@@ -45,7 +51,7 @@ const VenueCard = ({ image, name, sports, price, location, rating, reviews }) =>
             {sports.map((sport, index) => (
               <span
                 key={index}
-                className="bg-blue-100 text-blue-800 px-2 py-1 text-xs rounded-full font-medium"
+                className="bg-white text-black text-xs px-2 py-1 rounded-full font-semibold border border-gray-300"
               >
                 {sport}
               </span>
@@ -61,14 +67,14 @@ const VenueCard = ({ image, name, sports, price, location, rating, reviews }) =>
           {/* Rating */}
           <div className="flex items-center mb-4">
             {renderStars(rating)}
-            <span className="ml-2 text-sm text-gray-600">
-              {rating} ({reviews} reviews)
+            <span className="ml-2 text-sm text-gray-600 font-semibold">
+              {rating} ({reviews})
             </span>
           </div>
         </div>
 
         {/* Book Button */}
-        <button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-semibold py-2 transition-all duration-300">
+        <button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full font-semibold py-2 transition-all duration-300">
           Book Now
         </button>
       </div>

@@ -8,7 +8,7 @@ import SignUp from "./components/SignUp";
 import MyBookings from "./pages/user/MyBookings";
 import Profile from "./pages/user/MyProfile";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
-
+import VenueList from "./pages/user/VenueList";
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -58,7 +58,7 @@ const App = () => {
             <Route path="/profile" element={<Profile />} />
           </>
         )}
-
+         <Route path="/venues" element={<VenueList />} />
         <Route path="/owner/dashboard" element={<OwnerDashboard />} />
       </Routes>
     </Router>

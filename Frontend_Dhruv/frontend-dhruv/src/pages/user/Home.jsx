@@ -8,7 +8,7 @@ import InfoSection from "../../components/InfoSection";
 import Footer from "../../components/Footer";
 
 import venueData from "./venues.json";
-
+import { useNavigate } from "react-router-dom";
 const ITEMS_PER_PAGE = 6;
 
 const Home = () => {
@@ -36,6 +36,7 @@ const Home = () => {
   );
 
   const handlePageChange = (page) => setCurrentPage(page);
+  const navigate = useNavigate();
 
   return (
     <>
@@ -63,6 +64,15 @@ const Home = () => {
           totalPages={totalPages}
           onPageChange={handlePageChange}
         />
+      </div>
+
+       <div className="flex justify-center mb-10">
+        <button
+          className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 text-lg transition"
+          onClick={() => navigate("/venues")}
+        >
+          See All Venues
+        </button>
       </div>
 
       {/* Info Section */}
