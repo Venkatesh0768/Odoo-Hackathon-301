@@ -26,15 +26,15 @@ public class User extends BaseModel {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Facility> ownedFacilities;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Booking> bookings;
 
-    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Match> createdMatches;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Review> reviews;
 }
