@@ -1,39 +1,67 @@
-import React from "react";
-import { FaSearch } from "react-icons/fa";
+// components/Navbar.jsx
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
+  const { isAuthenticated, user, logout, isOwner } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
-    <nav className="shadow-md sticky top-0 bg-white z-50">
-      {/* Outer container with padding & max-width */}
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between py-4">
-        
-        {/* Logo */}
-        <div className="flex items-center space-x-2">
-          <div className="bg-green-500 w-3 h-3 rounded-full"></div>
-          <span className="text-lg font-bold">QuickCourt</span>
-        </div>
+    <nav className="bg-white shadow-lg">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between items-center py-4">
+          {/* Logo */}
+          <Link to="/" className="text-2xl font-bold text-green-500">
+            QuickCourt
+          </Link>
 
-        {/* Search bar */}
-        <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 w-96">
-          <FaSearch className="text-gray-500 mr-2" />
-          <input
-            type="text"
-            placeholder="Search for a venue..."
-            className="bg-transparent outline-none flex-1"
-          />
-        </div>
-
-        {/* Navigation Links */}
-        <div className="flex items-center space-x-6">
-          <a href="#" className="hover:text-green-500">Home</a>
-          <a href="#" className="hover:text-green-500">Venues</a>
-          <a href="#" className="hover:text-green-500">My Bookings</a>
-          <a href="#" className="hover:text-green-500">Profile</a>
-          <img
-            src="https://i.pravatar.cc/40"
-            alt="user"
-            className="w-10 h-10 rounded-full border"
-          />
+          {/* Navigation Links */}
+          <div className="flex items-center space-x-4">
+            {isAuthenticated ? (
+              <>
+                <span className="text-gray-700">
+                  Welcome, {user?.firstName || user?.email}
+                </span>
+                
+                {isOwner && (
+                  <Link
+                    to="/owner/dashboard"
+                    className="text-green-500 hover:text-green-600 font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                )}
+                
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="border border-green-500 text-green-500 hover:bg-green-50 px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>
