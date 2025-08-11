@@ -2,6 +2,7 @@ package org.example.userservicequickcourt.controller;
 
 import org.example.entityservicequickcourt.models.User;
 import org.example.userservicequickcourt.services.UserServices;
+import org.example.userservicequickcourt.dtos.UserResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,14 +21,14 @@ public class UserController {
 
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userServices.getAllUsers();
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+        List<UserResponseDto> users = userServices.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{user_id}")
-    public ResponseEntity<User> getUserById(@PathVariable String user_id) {
-        Optional<User> user = userServices.getUserById(user_id);
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable String user_id) {
+        Optional<UserResponseDto> user = userServices.getUserById(user_id);
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
