@@ -1,4 +1,4 @@
-// App.jsx
+// App.jsx - UPDATE with JWT and ProtectedRoute
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -10,35 +10,10 @@ import SignUp from './pages/user/SignUp';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import FacilityManagement from './pages/owner/FacilityManagement';
 import CourtManagement from './pages/owner/CourtManagement';
-import BookingManagement  from './pages/owner/BookingManagement';
+import BookingManagement from './pages/owner/BookingManagement';
 import OwnerProfile from './pages/owner/OwnerProfile';
-
-// Protected Route Component
-const ProtectedRoute = ({ children, requiredRole }) => {
-  const { isAuthenticated, user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (requiredRole && user?.role !== requiredRole) {
-    console.log('Access denied. User role:', user?.role, 'Required:', requiredRole);
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
+import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const AppRoutes = () => {
   const { isAuthenticated, isOwner } = useAuth();
@@ -58,45 +33,45 @@ const AppRoutes = () => {
       {/* User Routes */}
       <Route path="/" element={<Home/>} />
       
-      {/* Owner Protected Routes - ✅ FIXED: Using OWNER */}
+      {/* Owner Protected Routes - All require JWT validation */}
       <Route 
         path="/owner/dashboard" 
         element={
-          // <ProtectedRoute requiredRole="OWNER">
+          <ProtectedRoute requiredRole="OWNER">
             <OwnerDashboard />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/owner/facility-management" 
         element={
-          // <ProtectedRoute requiredRole="OWNER">
+          <ProtectedRoute requiredRole="OWNER">
             <FacilityManagement />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/owner/court-management" 
         element={
-          // <ProtectedRoute requiredRole="OWNER">
+          <ProtectedRoute requiredRole="OWNER">
             <CourtManagement />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/owner/bookings" 
         element={
-          // <ProtectedRoute requiredRole="OWNER">
+          <ProtectedRoute requiredRole="OWNER">
             <BookingManagement />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         } 
       />
       <Route 
         path="/owner/profile" 
         element={
-          // <ProtectedRoute requiredRole="OWNER">
+          <ProtectedRoute requiredRole="OWNER">
             <OwnerProfile />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         } 
       />
 
@@ -106,13 +81,17 @@ const AppRoutes = () => {
   );
 };
 
+
+
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

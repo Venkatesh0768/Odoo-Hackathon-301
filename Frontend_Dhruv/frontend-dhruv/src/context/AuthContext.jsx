@@ -1,6 +1,7 @@
-// context/AuthContext.jsx
+// context/AuthContext.jsx - UPDATE with OTP & JWT support
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authAPI } from '../utils/api';
+import { tokenManager } from '../utils/tokenManager';
 
 const AuthContext = createContext();
 
@@ -16,6 +17,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
@@ -24,44 +28,145 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       setLoading(true);
-      const userData = await authAPI.getCurrentUser();
-      setUser(userData);
-      console.log('Current user loaded:', userData); // Debug log
+      const token = tokenManager.getToken();
+      
+      if (!token || tokenManager.isTokenExpired(token)) {
+        setUser(null);
+        setIsAuthenticated(false);
+        tokenManager.removeToken();
+        return;
+      }
+
+      // Validate token with backend
+      const result = await authAPI.validateToken(token);
+      
+      if (result.success) {
+        setUser(result.data.user || result.data);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+        tokenManager.removeToken();
+      }
     } catch (error) {
+      console.error('Auth check failed:', error);
       setUser(null);
+      setIsAuthenticated(false);
+      tokenManager.removeToken();
     } finally {
       setLoading(false);
     }
   };
+const signup = async (userData) => {
+  try {
+    setError(null);
+    setLoading(true);
+    
+    const response = await authAPI.signup(userData);
+    
+    if (response && (response.success !== false)) {
+      console.log('Signup successful, redirecting to login');
+      return { 
+        success: true, 
+        message: 'Registration successful! Please login to continue.',
+        shouldRedirectToLogin: true 
+      };
+    } else {
+      throw new Error(response.message || 'Signup failed');
+    }
+  } catch (error) {
+    console.error('Signup error:', error);
+    setError(error.message);
+    return { success: false, error: error.message };
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const login = async (credentials) => {
-    try {
-      setError(null);
-      setLoading(true);
-      const response = await authAPI.login(credentials);
-      const userData = response.user || response;
-      setUser(userData);
-      console.log('Login successful, user role:', userData.role); // Debug log
-      return { success: true, user: userData };
-    } catch (error) {
-      setError(error.message);
-      return { success: false, error: error.message };
-    } finally {
+// context/AuthContext.jsx - Add specific error handling
+const login = async (credentials) => {
+  try {
+    setError(null);
+    setLoading(true);
+    
+    const response = await authAPI.login(credentials);
+    
+    if (response && response.success !== false) {
+      console.log('Login successful, attempting to send OTP...');
+      
+      // Add a small delay to ensure backend is ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const otpResult = await authAPI.sendOTP(credentials.email);
+      
+      if (otpResult.success) {
+        setPendingEmail(credentials.email);
+        setShowOTPVerification(true);
+        setLoading(false);
+        
+        return { 
+          success: true, 
+          requiresOTP: true,
+          message: 'OTP sent to your email. Please verify to continue.' 
+        };
+      } else {
+        // More specific error handling
+        const errorMessage = otpResult.error || 'Failed to send OTP';
+        console.error('OTP Send Failed:', errorMessage);
+        
+        if (errorMessage.includes('Network error')) {
+          setError('Network connection failed. Please check your internet connection.');
+        } else {
+          setError(`OTP sending failed: ${errorMessage}`);
+        }
+        
+        return { success: false, error: errorMessage };
+      }
+    } else {
+      throw new Error(response.message || 'Login failed');
+    }
+  } catch (error) {
+    console.error('Login process error:', error);
+    setError(error.message);
+    return { success: false, error: error.message };
+  } finally {
+    if (!showOTPVerification) {
       setLoading(false);
     }
-  };
+  }
+};
 
-  const signup = async (userData) => {
+  const verifyOTPAndAuthenticate = async (otpData) => {
     try {
-      setError(null);
       setLoading(true);
-      const response = await authAPI.signup(userData);
-      const newUser = response.user || response;
-      setUser(newUser);
-      console.log('Signup successful, user role:', newUser.role); // Debug log
-      return { success: true, user: newUser };
+      
+      // OTP verification returns JWT token
+      if (otpData.token || otpData.accessToken) {
+        const token = otpData.token || otpData.accessToken;
+        
+        // Store JWT token
+        tokenManager.setToken(token);
+        
+        // Validate and get user data
+        const result = await authAPI.validateToken(token);
+        
+        if (result.success) {
+          setUser(result.data.user || result.data);
+          setIsAuthenticated(true);
+          setShowOTPVerification(false);
+          setPendingEmail('');
+          
+          return { success: true };
+        } else {
+          throw new Error('Token validation failed');
+        }
+      } else {
+        throw new Error('No token received after OTP verification');
+      }
     } catch (error) {
+      console.error('OTP verification failed:', error);
       setError(error.message);
+      tokenManager.removeToken();
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -75,20 +180,36 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
+      setIsAuthenticated(false);
+      tokenManager.removeToken();
+      setShowOTPVerification(false);
+      setPendingEmail('');
     }
+  };
+
+  const closeOTPVerification = () => {
+    setShowOTPVerification(false);
+    setPendingEmail('');
+    setLoading(false);
   };
 
   const value = {
     user,
     loading,
     error,
-    login,
     signup,
+    login,
     logout,
-    isAuthenticated: !!user,
-    isOwner: user?.role === 'OWNER',     // ✅ FIXED: Using OWNER
+    isAuthenticated,
+    isOwner: user?.role === 'OWNER',
     isUser: user?.role === 'USER',
-    isAdmin: user?.role === 'ADMIN'
+    isAdmin: user?.role === 'ADMIN',
+    
+    // OTP related
+    showOTPVerification,
+    pendingEmail,
+    verifyOTPAndAuthenticate,
+    closeOTPVerification
   };
 
   return (

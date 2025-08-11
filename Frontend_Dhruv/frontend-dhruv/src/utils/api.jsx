@@ -1,5 +1,8 @@
 // utils/api.jsx
-const API_BASE_URL = 'https://05565dc42f72.ngrok-free.app/api/v1';
+import { tokenManager } from './tokenManager';
+import { otpService } from './otpService';
+
+const API_BASE_URL = 'https://e286598e46f4.ngrok-free.app/api/v1';
 
 const apiCall = async (endpoint, options = {}) => {
   try {
@@ -41,10 +44,29 @@ export const authAPI = {
     });
   },
 
+  // NEW: Send OTP
+  sendOTP: async (email) => {
+    return otpService.sendOTP(email);
+  },
+
+  // NEW: Verify OTP
+  verifyOTP: async (email, otp) => {
+    return otpService.verifyOTP(email, otp);
+  },
+
+  // NEW: Validate JWT token
+  validateToken: async (token) => {
+    return otpService.validateToken(token);
+  },
+
   logout: async () => {
-    return apiCall('/auth/logout', {
-      method: 'POST',
-    });
+    try {
+      await apiCall('/auth/logout', {
+        method: 'POST',
+      });
+    } finally {
+      tokenManager.removeToken();
+    }
   },
 
   getCurrentUser: async () => {
