@@ -32,13 +32,19 @@ public class UserServices {
             updatedUser.setEmail(user.getEmail());
             updatedUser.setPhoneNumber(user.getPhoneNumber());
             updatedUser.setRole(user.getRole());
+            updatedUser.setProfilePictureUrl(user.getProfilePictureUrl());
             return Optional.of(userRepository.save(updatedUser));
         }
         return Optional.empty();
     }
 
-    public void deleteUser(String id) {
-        userRepository.deleteById(id);
+    public boolean deleteUser(String id) {
+        Optional<User> user = userRepository.findUserById(id);
+        if (user.isPresent()) {
+            userRepository.delete(user.get());
+            return true;
+        }
+        return false;
     }
 
 }

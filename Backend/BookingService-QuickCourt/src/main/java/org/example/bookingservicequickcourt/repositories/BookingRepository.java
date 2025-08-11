@@ -1,0 +1,4 @@
+package org.example.bookingservicequickcourt.repositories;
+
+public class BookingRepository {
+}
