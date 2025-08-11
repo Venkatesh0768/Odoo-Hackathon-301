@@ -1,59 +1,7 @@
-// import React from "react";
-// import Navbar from "../../components/Navbar";
-// import Banner from "../../components/Banner";
-// import PopularSports from "../../components/PopularSports";
-// import FilterBar from "../../components/FilterBar";
-// import VenueCard from "../../components/VenueCard";
-// import Footer from "../../components/Footer";
-
-// const Home = () => {
-//   const venues = [
-//     {
-//       image: "https://source.unsplash.com/800x600/?badminton",
-//       name: "Elite Sports Complex",
-//       sports: ["Badminton", "Tennis"],
-//       price: 25,
-//       location: "Downtown",
-//       rating: 4.8,
-//       reviews: 124,
-//     },
-//     {
-//       image: "https://source.unsplash.com/800x600/?football",
-//       name: "Champions Football Arena",
-//       sports: ["Football", "Soccer"],
-//       price: 40,
-//       location: "North Side",
-//       rating: 4.9,
-//       reviews: 89,
-//     },
-//   ];
-
-//   return (
-//     <>
-//       <Navbar />
-//       <Banner />
-//       <PopularSports />
-//       <FilterBar />
-//       <section className="px-6 py-12">
-//         <h2 className="text-2xl font-bold mb-6 text-center">Popular Venues Near You</h2>
-//         <div className="flex flex-wrap justify-center gap-6">
-//           {venues.map((venue, idx) => (
-//             <VenueCard key={idx} {...venue} />
-//           ))}
-//         </div>
-//       </section>
-//       <Footer />
-//     </>
-//   );
-// };
-
-// export default Home;
-import React, { useState, useEffect } from "react";
-
-import Navbar from "../../components/Navbar";
+import { useState, useEffect } from "react";
 import Banner from "../../components/Banner";
 import PopularSports from "../../components/PopularSports";
-import FilterBar from "../../components/FilterBar";
+// import FilterBar from "../../components/FilterBar";
 import VenueCard from "../../components/VenueCard";
 import Pagination from "../../components/Pagination";
 import InfoSection from "../../components/InfoSection";
@@ -91,20 +39,33 @@ const Home = () => {
 
   return (
     <>
-      <Navbar />
       <Banner />
       <PopularSports />
-      <div className="my-6">
+      {/* <div className="my-6">
         <FilterBar />
-      </div>
-      <section className="flex flex-wrap justify-center gap-6 px-6 pb-12">
-        {currentVenues.map((venue) => (
-          <VenueCard key={venue.id} {...venue} />
-        ))}
+      </div> */}
+
+      {/* Venue Cards Section */}
+      <section className="px-6 pb-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-12">
+            {currentVenues.map((venue) => (
+              <VenueCard key={venue.id} {...venue} />
+            ))}
+          </div>
+        </div>
       </section>
 
-      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+      {/* Pagination */}
+      <div className="flex justify-center pb-12">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      </div>
 
+      {/* Info Section */}
       <InfoSection />
 
       <Footer />
