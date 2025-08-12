@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import OtpVerification from "./OtpVerification";
-import { otpService } from "../services/otpService";
 
 function passwordStrength(password) {
   if (!password) return "";
@@ -28,8 +26,6 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [showOtpVerification, setShowOtpVerification] = useState(false);
-  const [signupData, setSignupData] = useState(null);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -62,7 +58,7 @@ const SignUp = () => {
       };
 
       const res = await fetch(
-        "http://localhost:8082/api/v1/auth/signup",
+        "https://b9fa56b69715.ngrok-free.app/api/v1/auth/signup",
         {
           method: "POST",
           headers: {
@@ -77,16 +73,16 @@ const SignUp = () => {
       const data = await res.json();
 
       if (res.ok) {
-        setSignupData(data);
-        setSuccess("Account created! Please verify your email with OTP.");
-        
-        // Send OTP after successful signup
-        try {
-          await sendOtp(form.email);
-          setShowOtpVerification(true);
-        } catch (otpError) {
-          setError("Account created but failed to send OTP. Please try signing in.");
-        }
+        setSuccess(data.message || "Account created! Please sign in.");
+        setForm({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          confirm: "",
+          role: "",
+          phone: ""
+        });
       } else {
         setError(data.message || "Sign up failed");
       }
@@ -95,52 +91,6 @@ const SignUp = () => {
       setError("Server error. Please try again later.");
     }
   };
-
-  const sendOtp = async (email) => {
-    try {
-      await otpService.sendOtp(email);
-    } catch (error) {
-      throw new Error("Failed to send OTP");
-    }
-  };
-
-  const handleOtpVerificationSuccess = (data) => {
-    setSuccess("Email verified successfully! You can now sign in.");
-    setShowOtpVerification(false);
-    // Reset form
-    setForm({
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      confirm: "",
-      role: "",
-      phone: ""
-    });
-  };
-
-  const handleResendOtp = async () => {
-    return await sendOtp(form.email);
-  };
-
-  const handleBackToSignup = () => {
-    setShowOtpVerification(false);
-    setError("");
-    setSuccess("");
-  };
-
-  // Show OTP verification if needed
-  if (showOtpVerification) {
-    return (
-      <OtpVerification
-        email={form.email}
-        onVerificationSuccess={handleOtpVerificationSuccess}
-        onResendOtp={handleResendOtp}
-        isSignup={true}
-        onBack={handleBackToSignup}
-      />
-    );
-  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-blue-50">

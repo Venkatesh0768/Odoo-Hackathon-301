@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
-import OtpDemo from "./components/OtpDemo";
 import Home from "./pages/user/Home";
 import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
@@ -49,7 +48,6 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<SignIn setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/otp-demo" element={<OtpDemo />} />
         {isLoggedIn && (
           <>
             <Route path="/my-bookings" element={<MyBookings />} />
