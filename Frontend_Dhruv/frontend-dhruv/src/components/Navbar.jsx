@@ -1,43 +1,69 @@
-import React from "react";
-import { FaSearch } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await fetch(
+        "https://dd183bddabf9.ngrok-free.app/api/v1/auth/logout",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "ngrok-skip-browser-warning": "true" }
+        }
+      );
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+    setIsLoggedIn(false);
+    navigate("/");
+  };
+
   return (
-    <nav className="shadow-md sticky top-0 bg-white z-50">
-      {/* Outer container with padding & max-width */}
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between py-4">
-        
-        {/* Logo */}
-        <div className="flex items-center space-x-2">
-          <div className="bg-green-500 w-3 h-3 rounded-full"></div>
-          <span className="text-lg font-bold">QuickCourt</span>
-        </div>
+    <nav className="bg-white shadow py-4 px-6 flex items-center justify-between">
+      {/* Logo */}
+      <Link to="/" className="text-2xl font-bold text-green-600">
+        QuickCourt
+      </Link>
 
-        {/* Search bar */}
-        <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 w-96">
-          <FaSearch className="text-gray-500 mr-2" />
-          <input
-            type="text"
-            placeholder="Search for a venue..."
-            className="bg-transparent outline-none flex-1"
-          />
-        </div>
-
-        {/* Navigation Links */}
-        <div className="flex items-center space-x-6">
-          <a href="#" className="hover:text-green-500">Home</a>
-          <a href="#" className="hover:text-green-500">Venues</a>
-          <a href="#" className="hover:text-green-500">My Bookings</a>
-          <a href="#" className="hover:text-green-500">Profile</a>
-          <img
-            src="https://i.pravatar.cc/40"
-            alt="user"
-            className="w-10 h-10 rounded-full border"
-          />
-        </div>
+      {/* Menu Links */}
+      <div className="flex items-center gap-6">
+        {!isLoggedIn ? (
+          <>
+            {/* Guest Links */}
+            <Link
+              to="/login"
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Login
+            </Link>
+            <Link
+              to="/signup"
+              className="px-4 py-2 border border-green-600 text-green-600 rounded hover:bg-green-100"
+            >
+              Sign Up
+            </Link>
+          </>
+        ) : (
+          <>
+            {/* Authenticated Links */}
+            <Link to="/my-bookings" className="hover:text-green-600">
+              My Bookings
+            </Link>
+            <Link to="/profile" className="hover:text-green-600">
+              Profile
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </>
+        )}
       </div>
     </nav>
   );
 };
-
 export default Navbar;
